@@ -153,18 +153,19 @@ async def sort_ticket(
             classifier_source = "openai"
 
     except Exception as e:
-        logger.warning(f"Failed to fetch or parse OpenAI classification: {e}. Falling back to rules-based classification.")
+        error_msg = f" (Error: {str(e)})"
+        logger.warning(f"Failed to fetch or parse OpenAI classification{error_msg}. Falling back to rules-based classification.")
         classifier_source = "rules_fallback"
         # If LLM failed, we rely entirely on rules pre-check results
         if rules_phishing_detected:
             case_type = "phishing_or_social_engineering"
             severity = "critical"
-            agent_summary = "Rules-based fallback: critical security phishing pattern detected."
+            agent_summary = f"Rules-based fallback{error_msg}: critical security phishing pattern detected."
             confidence = 1.0
         else:
             case_type = "other"
             severity = "low"
-            agent_summary = "Rules-based fallback: ticket categorized due to classification server timeout or error."
+            agent_summary = f"Rules-based fallback{error_msg}: ticket categorized due to classification server timeout or error."
             confidence = 0.5
 
     # 3. Merge flags: if either pre-check or LLM flags phishing/critical, elevate to critical phishing
