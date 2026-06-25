@@ -2,7 +2,7 @@
 
 QueueStorm is an AI-powered customer support ticket triaging service built for digital finance platforms. It reads support tickets, automatically categorizes them, rates their severity, maps them to the appropriate handling department, and flags security concerns like phishing or credential leaks.
 
-It is built with **FastAPI**, **PostgreSQL**, **React (Vite + Tailwind CSS)**, and integrates **OpenAI Structured Outputs (gpt-4o-mini)**.
+It is built with **FastAPI**, **PostgreSQL**, **React (Vite + Tailwind CSS)**, and integrates **Gemini Structured Outputs (gemini-2.5-flash)**.
 
 ---
 
@@ -13,7 +13,7 @@ graph TD
     Client[React Dashboard Port 3000] -->|POST /sort-ticket| API[FastAPI Service Port 8000]
     Client -->|GET /health| API
     API -->|Async Log Triage| DB[(PostgreSQL Port 5432)]
-    API -->|Triage LLM Call| OpenAI[OpenAI API gpt-4o-mini]
+    API -->|Triage LLM Call| Gemini[Gemini API gemini-2.5-flash]
 ```
 
 ---
@@ -41,7 +41,7 @@ The audit log is stored in PostgreSQL and is configured via SQLAlchemy. Writes a
 - `agent_summary` (text)
 - `human_review_required` (boolean, indexed)
 - `confidence` (float)
-- `classifier_source` (text) — `'openai'` or `'rules_fallback'`
+- `classifier_source` (text) — `'gemini'` or `'rules_fallback'`
 - `latency_ms` (integer)
 - `created_at` (timestamptz)
 
@@ -61,7 +61,7 @@ ORDER BY c.created_at DESC;
 
 ### GET `/health`
 - **Description**: Returns `200 OK` instantly with `{"status": "ok"}`.
-- **Rules**: Zero external dependency calls (no DB ping, no OpenAI check) to guarantee response under 10s even under degraded dependencies.
+- **Rules**: Zero external dependency calls (no DB ping, no Gemini check) to guarantee response under 10s even under degraded dependencies.
 
 ### POST `/sort-ticket`
 - **Request Body** (`application/json`):
@@ -92,10 +92,10 @@ ORDER BY c.created_at DESC;
 
 - **Credential Scan Overrides**: Fast rules-based regex pre-check scans for sensitive keyword matching (OTP, PIN, password, CVV, "is this bkash", representative impersonation). If matched, the ticket is instantly flagged as `phishing_or_social_engineering` / `critical` severity / `human_review_required=true` bypassing the LLM.
 - **PII Leak Sanitations**: Post-classification check scans the returned `agent_summary` for credentials (OTP, PIN, password, CVV, or 13-19 digit card numbers). Leaks are immediately discarded and replaced with a safe generic text summary.
-- **Rate Limiting**: Configured at a maximum of `5 requests/second` per IP address for the `/sort-ticket` endpoint to prevent OpenAI token exhaustion.
+- **Rate Limiting**: Configured at a maximum of `5 requests/second` per IP address for the `/sort-ticket` endpoint to prevent Gemini token exhaustion.
 - **CORS Policies**: Origin locked using the `FRONTEND_ORIGIN` environment variable (defaults to `*` for local dev).
 - **Silent Logging**: The message body is never written into shared server logs. Only `ticket_id`, `case_type`, `severity`, `department`, `latency_ms`, and `classifier_source` are logged.
-- **Fail Loudly at Startup**: The application fails during startup if the required environment variable `OPENAI_API_KEY` is not defined.
+- **Fail Loudly at Startup**: The application fails during startup if the required environment variable `GEMINI_API_KEY` is not defined.
 
 ---
 
@@ -103,16 +103,16 @@ ORDER BY c.created_at DESC;
 
 ### Prerequisites
 - Install **Docker** and **Docker Compose**.
-- An active **OpenAI API Key**.
+- An active **Gemini API Key**.
 
 ### Configuration (`.env`)
 Create a `.env` file in the root directory by copying the sample:
 ```bash
 cp .env.example .env
 ```
-Populate `.env` with your OpenAI Key:
+Populate `.env` with your Gemini Key:
 ```env
-OPENAI_API_KEY=sk-proj-YourActualOpenAIKeyHere
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### Launch Container Orchestration

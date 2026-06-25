@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Required secrets
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Frontend origin (CORS)
@@ -14,8 +14,8 @@ FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")
 
 # Validate required variables and fail loudly at startup if missing
 missing_secrets = []
-if not OPENAI_API_KEY:
-    missing_secrets.append("OPENAI_API_KEY")
+if not GEMINI_API_KEY:
+    missing_secrets.append("GEMINI_API_KEY")
 if not DATABASE_URL:
     missing_secrets.append("DATABASE_URL")
 
