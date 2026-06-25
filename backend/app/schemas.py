@@ -42,6 +42,6 @@ class OpenAIClassification(BaseModel):
     agent_summary: str = Field(
         ..., description="One or two neutral sentences summarizing the ticket context without repeating credentials"
     )
-    confidence: Optional[float] = Field(
-        None, description="Confidence score from 0.0 to 1.0 (defaults to 0.5 if not returned)"
+    confidence: float = Field(
+        0.5, description="Confidence score from 0.0 to 1.0 (defaults to 0.5 if not returned)"
     )
