@@ -21,7 +21,8 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: Dockerfile
     container_name: queuestorm-backend
     restart: always
     ports:
